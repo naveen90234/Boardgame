@@ -1,31 +1,63 @@
 pipeline {
     agent any
-    
+
     tools {
         maven 'maven3.6'
         jdk 'jdk17'
     }
 
+    environment {
+        IMAGE_NAME = 'naveen90234/boardgame-app'
+        IMAGE_TAG = "latest"
+    }
+
     stages {
-        
         stage('Compile') {
             steps {
-             sh 'mvn compile'
+                sh './mvnw compile'
             }
         }
-        stage('test') {
+
+        stage('Test') {
             steps {
-                sh 'mvn test'
+                sh './mvnw test'
             }
         }
+
         stage('Package') {
             steps {
-               sh 'mvn package'
+                sh './mvnw package -DskipTests'
             }
         }
-        stage('Hello') {
+
+        stage('Build Docker Image') {
             steps {
-                echo 'Hello World'
+                script {
+                    sh "docker build -t $IMAGE_NAME:$IMAGE_TAG ."
+                }
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh """
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push $IMAGE_NAME:$IMAGE_TAG
+                    """
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh 'kubectl apply -f deployment-service.yaml'
+            }
+        }
+
+        stage('Done') {
+            steps {
+                echo 'Pipeline completed successfully.'
             }
         }
     }
