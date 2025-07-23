@@ -11,6 +11,14 @@ pipeline {
         IMAGE_TAG = "latest"
     }
 
+    
+    stage('Fix Permissions') {
+    steps {
+        sh 'chmod +x mvnw'
+         }
+      }
+
+
     stages {
         stage('Compile') {
             steps {
