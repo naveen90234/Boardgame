@@ -11,15 +11,13 @@ pipeline {
         IMAGE_TAG = "latest"
     }
 
-    
-    stage('Fix Permissions') {
-    steps {
-        sh 'chmod +x mvnw'
-         }
-      }
-
-
     stages {
+        stage('Fix Permissions') {
+            steps {
+                sh 'chmod +x mvnw'
+            }
+        }
+
         stage('Compile') {
             steps {
                 sh './mvnw compile'
@@ -40,9 +38,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh "docker build -t $IMAGE_NAME:$IMAGE_TAG ."
-                }
+                sh "docker build -t $IMAGE_NAME:$IMAGE_TAG ."
             }
         }
 
